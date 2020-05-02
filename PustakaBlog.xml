@@ -4751,17 +4751,17 @@ typeof exports != "undefined" && (exports.SyntaxHighlighter = SyntaxHighlighter)
 </script> 
 <script type='text/javascript'>
 //<![CDATA[
-$("body.item .entry-body a").each(function(){
-    var lnkButton=$(this),
-        imgLink=lnkButton.find('img').attr('src');
-	if(imgLink != "undefined") {
+$("body.item .entry-body a img").each(function(){
+    var lnkButton=$(this).parent(),
+        lnkUrl=lnkButton.attr('href');
+	if(lnkUrl != undefined) {
 	  lnkButton.attr('data-lightbox','img-post');
 	}
 });
-$("body.static_page .entry-body a").each(function(){
-    var lnkButton=$(this),
-        imgLink=lnkButton.find('img').attr('src');
-	if(imgLink != "undefined") {
+$("body.static_page .entry-body a img").each(function(){
+    var lnkButton=$(this).parent(),
+        lnkUrl=lnkButton.attr('href');
+	if(lnkUrl != undefined) {
 	  lnkButton.attr('data-lightbox','img-post');
 	}
 });
