@@ -2224,8 +2224,8 @@ box-sizing:border-box;
 </li>
 <li class='dropdown'><a class='dropdown-toggle' data-toggle='dropdown' href='#'>Pengoperasian Sistem<i class='fa fa-caret-down'/></a>
 <ul class='dropdown-menu'>
- <li><a expr:href='data:blog.homepageUrl + &quot;search/label/C++&quot;' itemprop='url'><span itemprop='name'>Linux Fedora</span></a></li>
- <li><a expr:href='data:blog.homepageUrl + &quot;search/label/Exsi&quot;' itemprop='url'><span itemprop='name'>EXSI</span></a></li>
+ <li><a expr:href='data:blog.homepageUrl + &quot;search/label/Linux&quot;' itemprop='url'><span itemprop='name'>Linux</span></a></li>
+ <li><a expr:href='data:blog.homepageUrl + &quot;search/label/EXSI&quot;' itemprop='url'><span itemprop='name'>EXSI</span></a></li>
  <li><a expr:href='data:blog.homepageUrl + &quot;search/label/Windows&quot;' itemprop='url'><span itemprop='name'>Windows</span></a></li>
 </ul>
 </li>
