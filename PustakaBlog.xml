@@ -3724,7 +3724,36 @@ if (static_page_text === "[sitemap]") {
 <script type='text/javascript'>
 //<![CDATA[
 /**
- * SyntaxHighlighter Main Script
+ * SyntaxHighlighter
+ * http://alexgorbatchev.com/
+ *
+ * SyntaxHighlighter is donationware. If you are using it, please donate.
+ * http://alexgorbatchev.com/wiki/SyntaxHighlighter:Donate
+ *
+ * @version
+ * 3.0.83 (July 02 2010)
+ * 
+ * @copyright
+ * Copyright 2004-2010 Alex Gorbatchev.
+ *
+ * @credits
+ * Added Toolbar by Stephanus Ba.Sa (wiefung@sbskokmputer.web.id)
+ *
+ * @license
+ * This file is part of SyntaxHighlighter.
+ * 
+ * SyntaxHighlighter is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * SyntaxHighlighter is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with SyntaxHighlighter.  If not, see <http://www.gnu.org/copyleft/lesser.html>.
  */
 var XRegExp;
 if (XRegExp) throw Error("can't load XRegExp twice in the same frame");
@@ -4219,6 +4248,7 @@ var SyntaxHighlighter = function () {
     }
     if (typeof require != "undefined" && typeof XRegExp == "undefined") XRegExp = require("XRegExp").XRegExp;
     var e = {
+        code: null,
         defaults: {
             "class-name": "",
             "first-line": 1,
@@ -4233,21 +4263,30 @@ var SyntaxHighlighter = function () {
             collapse: false,
             "auto-links": true,
             light: false,
+            "wrap-lines": true,
             "html-script": false
         },
         config: {
             space: "&nbsp;",
             useScriptTags: true,
+			clipboardSwf: null,
+			toolbarItemWidth: 12,
+			toolbarItemHeight: 12,
             bloggerMode: false,
             stripBrs: false,
             tagName: "pre",
             strings: {
+				expandGutter: "expand gutter",
                 expandSource: "expand source",
+				viewSource: "view source",
+				copyToClipboard: "copy to clipboard",
+				copyToClipboardConfirmation: "The code is in your clipboard now",
+				print: "print",
                 help: "?",
                 alert: "SyntaxHighlighter\n\n",
                 noBrush: "Can't find brush for: ",
                 brushNotHtmlScript: "Brush wasn't configured for html-script option: ",
-                aboutDialog: '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>About SyntaxHighlighter</title></head><body style="font-family:Geneva,Arial,Helvetica,sans-serif;background-color:#fff;color:#000;font-size:1em;text-align:center;"><div style="text-align:center;margin-top:1.5em;"><div style="font-size:xx-large;">SyntaxHighlighter</div><div style="font-size:.75em;margin-bottom:3em;"><div>version 3.0.83 (July 02 2010)</div><div><a href="http://alexgorbatchev.com/SyntaxHighlighter" target="_blank" style="color:#005896">http://alexgorbatchev.com/SyntaxHighlighter</a></div><div>JavaScript code syntax highlighter.</div><div>Copyright 2004-2010 Alex Gorbatchev.</div></div><div>If you like this script, please <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=2930402" style="color:#005896">donate</a> to <br/>keep development active!</div></div></body></html>'
+                aboutDialog: '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>About SyntaxHighlighter</title></head><body style="font-family:Geneva,Arial,Helvetica,sans-serif;background-color:#fff;color:#000;font-size:1em;text-align:center;"><div style="text-align:center;margin-top:1em;"><div style="font-size:xx-large;">SyntaxHighlighter</div><div style="font-size:.75em;margin-bottom:2em;"><div>version 3.0.83 (July 02 2010)</div><div><a href="http://alexgorbatchev.com/SyntaxHighlighter" target="_blank" style="color:#005896">http://alexgorbatchev.com/SyntaxHighlighter</a></div><div>JavaScript code syntax highlighter.</div><div>Copyright 2004-2010 Alex Gorbatchev.</div><br /><div>Credit of Toolbar Script by</div><div>Stephanus Ba.Sa (wiefung@sbskomputer.web.id)</div><div><a href="http://sbskomputer.web.id" target="_blank" style="color:#005896">http://sbskomputer.web.id</a></div></div><div>If you like this script, please <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=2930402" style="color:#005896">donate</a> to <br/>keep development active!</div></div></body></html>'
             }
         },
         vars: {
@@ -4278,6 +4317,44 @@ var SyntaxHighlighter = function () {
                 right: /(&lt;|<)\/\s*script\s*(&gt;|>)/gi
             }
         },
+        utils: {
+			fixInputString: function(str) {
+				var br = /<br\s*\/?>|&lt;br\s*\/?&gt;/gi;
+				if (e.config.bloggerMode == true) {
+					str = str.replace(br, "\n")
+				}
+				if (e.config.stripBrs == true) {
+					str = str.replace(br, "")
+				}
+				return str
+			},
+			trim: function(str) {
+				return str.replace(/^\s+|\s+$/g, "")
+			},
+			unindent: function(str) {
+				var a = e.utils.fixInputString(str).split("\n"),
+					b = new Array(),
+					c = /^\s*/,
+					min = 1000;
+				for (var i = 0; i < a.length && min > 0; i++) {
+					var d = a[i];
+					if (e.utils.trim(d).length == 0) {
+						continue
+					}
+					var f = c.exec(d);
+					if (f == null) {
+						return str
+					}
+					min = Math.min(f[0].length, min)
+				}
+				if (min > 0) {
+					for (var i = 0; i < a.length; i++) {
+						a[i] = a[i].substr(min)
+					}
+				}
+				return a.join("\n")
+			}
+		},
         toolbar: {
             getHtml: function (a) {
                 function b(i, k) {
@@ -4288,7 +4365,9 @@ var SyntaxHighlighter = function () {
                 return c
             },
             getButtonHtml: function (a, b, c) {
-                return '<span><a href="#" class="toolbar_item command_' + b + " " + b + '">' + c + "</a></span>"
+                var w = e.config.toolbarItemWidth,
+					h = e.config.toolbarItemHeight;
+                return '<a href="#" class="toolbar_item command_' + b + " " + b + '" style="width:' + w + 'px!important;height:' + h + 'px!important" title="' + c + '"><span>' + c + "</span></a>"
             },
             handler: function (a) {
                 var b = a.target,
@@ -4301,7 +4380,7 @@ var SyntaxHighlighter = function () {
                 a.preventDefault()
             },
             items: {
-                list: ["expandSource", "help"],
+                list: ["expandSource", "expandGutter", "copyToClipboard", "print", "viewSource", "help"],
                 expandSource: {
                     getHtml: function (a) {
                         if (a.getParam("collapse") != true) return "";
@@ -4311,6 +4390,92 @@ var SyntaxHighlighter = function () {
                     execute: function (a) {
                         a = document.getElementById(t(a.id));
                         a.className = a.className.replace("collapsed", "")
+                    }
+                },
+                expandGutter: {
+					getHtml: function (a) {
+                        var b = e.toolbar.getButtonHtml(a, "expandGutter", e.config.strings.expandGutter);
+                        b = b.replace(" expandGutter", " expandGutter opened");
+                        return b
+                    },
+                    execute: function (a) {
+						e.defaults.gutter = false;
+                        a = document.getElementById(t(a.id));
+                        var b = p(a, ".toolbar", false),
+							c = p(b, ".expandGutter", false);
+						if (!(!c)) {
+							if(c.className.indexOf("opened") > 0) c.className = c.className.replace(" opened", "");
+							if(a.className.indexOf("nogutter") > 0) {
+								c.className += " opened";
+								c.className = c.className.replace(" closed", "");
+								a.className = a.className.replace(" nogutter", "")
+							} else {
+								c.className += " closed";
+								c.className = c.className.replace(" opened", "");
+								a.className += " nogutter"
+							}
+						}
+                    }
+                },
+                copyToClipboard: {
+					getHtml: function (a) {
+                        return e.toolbar.getButtonHtml(a, "copyToClipboard", e.config.strings.copyToClipboard)
+                    },
+                    execute: function (a) {
+							a = document.getElementById(t(a.id));
+							var b = p(a, ".syntaxhighlighter", false);
+							a = p(a, ".container", false);
+							var c = document.createElement("textarea");
+							if (!(!a || !b || p(a, "textarea"))) {
+								B(b.id);
+								r(b, "source");
+								for (var d = a.childNodes, h = [], g = 0; g < d.length; g++) h.push(d[g].innerText || d[g].textContent);
+								h = h.join("\r");
+								c.appendChild(document.createTextNode(h));
+								a.appendChild(c);
+								c.focus();
+								c.select();
+								c.setSelectionRange(0, 99999);
+								document.execCommand("copy");
+								window.alert(e.config.strings.copyToClipboardConfirmation);
+								
+								w(c, "blur", function () {
+									c.parentNode.removeChild(c);
+									b.className = b.className.replace("source", "")
+								})
+							}
+                    }
+                },
+                print: {
+					getHtml: function (a) {
+                        return e.toolbar.getButtonHtml(a, "print", e.config.strings.print)
+                    },
+                    execute: function (c) {
+                        var a = "location=0, resizable=1, menubar=0, scrollbars=1";
+                        var w = (screen.width - 200),
+							h = (screen.height - 200);
+                        a += ", left=" + (screen.width - w) / 2 + ", top=" + (screen.height - h) / 2 + ", width=" + w + ", height=" + h;
+                        a = a.replace(/^,/, "");
+                        a = window.open("", "_blank", a);
+                        a.focus();
+                        var b = a.document;
+                        b.write("<pre>" + e.code + "</pre>");
+                        b.close();
+                        a.focus();
+                        a.print()
+                    }
+                },
+                viewSource: {
+                    getHtml: function (a) {
+                        return e.toolbar.getButtonHtml(a, "viewSource", e.config.strings.viewSource)
+                    },
+                    execute: function (c) {
+                        var a = window.open("", "_blank");
+                        a.focus();
+                        var b = a.document;
+                        b.write("<pre>" + e.code + "</pre>");
+                        b.close();
+                        a.focus()
                     }
                 },
                 help: {
@@ -4585,7 +4750,9 @@ var SyntaxHighlighter = function () {
             var b = "",
                 c = ["syntaxhighlighter"],
                 d;
+            e.code = a;
             if (this.getParam("light") == true) this.params.toolbar = this.params.gutter = false;
+            if (this.getParam("wrap-lines") == false) c.push("no-wrap");
             className = "syntaxhighlighter";
             this.getParam("collapse") == true && c.push("collapsed");
             if ((gutter = this.getParam("gutter")) == false) c.push("nogutter");
@@ -4623,7 +4790,7 @@ var SyntaxHighlighter = function () {
             b = this.getCodeLinesHtml(b, d);
             if (this.getParam("auto-links")) b = E(b);
             typeof navigator != "undefined" && navigator.userAgent && navigator.userAgent.match(/MSIE/) && c.push("ie");
-            return b = '<div id="' + t(this.id) + '" class="' + c.join(" ") + '">' + (this.getParam("toolbar") ? e.toolbar.getHtml(this) : "") + '<table border="0" cellpadding="0" cellspacing="0">' + this.getTitleHtml(this.getParam("title")) + "<tbody><tr>" + (gutter ? '<td class="gutter">' + this.getLineNumbersHtml(a) + "</td>" : "") + '<td class="code"><div class="container">' + b + "</div></td></tr></tbody></table></div>"
+            return b = '<div id="' + t(this.id) + '" class="' + c.join(" ") + '">' + (this.getParam("toolbar") ? e.toolbar.getHtml(this) : "") + '<div class="syntax-content"><table border="0" cellpadding="0" cellspacing="0">' + this.getTitleHtml(this.getParam("title")) + "<tbody><tr>" + (gutter ? '<td class="gutter">' + this.getLineNumbersHtml(a) + "</td>" : "") + '<td class="code"><div class="container">' + b + "</ioldiv></td></tr></tbody></table></div></div>"
         },
         getDiv: function (a) {
             if (a === null) a = "";
@@ -4697,16 +4864,39 @@ typeof exports != "undefined" && (exports.SyntaxHighlighter = SyntaxHighlighter)
 </script>
 <!-- Include *at least* the core style and default theme -->
 <style>
-.syntaxhighlighter a,.syntaxhighlighter code,.syntaxhighlighter div,.syntaxhighlighter table,.syntaxhighlighter table caption,.syntaxhighlighter table tbody,.syntaxhighlighter table td,.syntaxhighlighter table thead,.syntaxhighlighter table tr,.syntaxhighlighter textarea{-moz-border-radius:0!important;-webkit-border-radius:0!important;background:0 0!important;border:0!important;bottom:auto!important;float:none!important;height:auto!important;left:auto!important;line-height:1.1em!important;margin:0!important;outline:0!important;overflow:visible!important;padding:0!important;position:static!important;right:auto!important;text-align:left!important;top:auto!important;vertical-align:middle!important;width:auto!important;box-sizing:content-box!important;font-family:Consolas,&quot;Bitstream Vera Sans Mono&quot;,&quot;Courier New&quot;,Courier,monospace!important;font-weight:400!important;font-style:normal!important;min-height:inherit!important;min-height:auto!important}.syntaxhighlighter{width:100%!important;margin:1em 0 1em 0!important;position:relative!important;overflow:auto!important;font-size:1em!important}.syntaxhighlighter.source{overflow:hidden!important}.syntaxhighlighter .bold{font-weight:700!important}.syntaxhighlighter .italic{font-style:italic!important}.syntaxhighlighter .line{white-space:pre!important}.syntaxhighlighter table{width:100%!important}.syntaxhighlighter table caption{text-align:left!important;padding:.5em 0 .5em 1em!important}.syntaxhighlighter table td.code{width:100%!important}.syntaxhighlighter table td.code .container{position:relative!important}.syntaxhighlighter table td.code .container textarea{box-sizing:border-box!important;position:absolute!important;left:0!important;top:0!important;width:100%!important;height:100%!important;border:none!important;background:#fff!important;padding-left:1em!important;overflow:hidden!important;white-space:pre!important}.syntaxhighlighter table td.gutter .line{text-align:right!important;padding:0 .5em 0 1em!important}.syntaxhighlighter table td.code .line{padding:0 1em!important}.syntaxhighlighter.nogutter td.code .container textarea,.syntaxhighlighter.nogutter td.code .line{padding-left:0!important}.syntaxhighlighter.show{display:block!important}.syntaxhighlighter.collapsed table{display:none!important}.syntaxhighlighter.collapsed .toolbar{padding:.1em .8em 0 .8em!important;font-size:1em!important;position:static!important;width:auto!important;height:auto!important}.syntaxhighlighter.collapsed .toolbar span{display:inline!important;margin-right:1em!important}.syntaxhighlighter.collapsed .toolbar span a{padding:0!important;display:none!important}.syntaxhighlighter.collapsed .toolbar span a.expandSource{display:inline!important}.syntaxhighlighter .toolbar{position:absolute!important;right:1px!important;top:1px!important;width:11px!important;height:11px!important;font-size:10px!important;z-index:10!important}.syntaxhighlighter .toolbar span.title{display:inline!important}.syntaxhighlighter .toolbar a{display:block!important;text-align:center!important;text-decoration:none!important;padding-top:1px!important}.syntaxhighlighter .toolbar a.expandSource{display:none!important}.syntaxhighlighter.ie{font-size:.9em!important;padding:1px 0 1px 0!important}.syntaxhighlighter.ie .toolbar{line-height:8px!important}.syntaxhighlighter.ie .toolbar a{padding-top:0!important}.syntaxhighlighter.printing .line.alt1 .content,.syntaxhighlighter.printing .line.alt2 .content,.syntaxhighlighter.printing .line.highlighted .number,.syntaxhighlighter.printing .line.highlighted.alt1 .content,.syntaxhighlighter.printing .line.highlighted.alt2 .content{background:0 0!important}.syntaxhighlighter.printing .line .number{color:#bbb!important}.syntaxhighlighter.printing .line .content{color:#000!important}.syntaxhighlighter.printing .toolbar{display:none!important}.syntaxhighlighter.printing a{text-decoration:none!important}.syntaxhighlighter.printing .plain,.syntaxhighlighter.printing .plain a{color:#000!important}.syntaxhighlighter.printing .comments,.syntaxhighlighter.printing .comments a{color:#008200!important}.syntaxhighlighter.printing .string,.syntaxhighlighter.printing .string a{color:#00f!important}.syntaxhighlighter.printing .keyword{color:#069!important;font-weight:700!important}.syntaxhighlighter.printing .preprocessor{color:gray!important}.syntaxhighlighter.printing .variable{color:#a70!important}.syntaxhighlighter.printing .value{color:#090!important}.syntaxhighlighter.printing .functions{color:#ff1493!important}.syntaxhighlighter.printing .constants{color:#06c!important}.syntaxhighlighter.printing .script{font-weight:700!important}.syntaxhighlighter.printing .color1,.syntaxhighlighter.printing .color1 a{color:gray!important}.syntaxhighlighter.printing .color2,.syntaxhighlighter.printing .color2 a{color:#ff1493!important}.syntaxhighlighter.printing .color3,.syntaxhighlighter.printing .color3 a{color:red!important}.syntaxhighlighter.printing .break,.syntaxhighlighter.printing .break a{color:#000!important}.syntaxhighlighter .toolbar {display:none!important}
+.syntaxhighlighter a,.syntaxhighlighter code,.syntaxhighlighter div,.syntaxhighlighter table,.syntaxhighlighter table caption,.syntaxhighlighter table tbody,.syntaxhighlighter table td,.syntaxhighlighter table thead,.syntaxhighlighter table tr,.syntaxhighlighter textarea{-moz-border-radius:0!important;-webkit-border-radius:0!important;background:0 0!important;border:0!important;bottom:auto!important;float:none!important;height:auto!important;left:auto!important;line-height:1.2em!important;margin:0!important;outline:0!important;overflow:visible!important;padding:0!important;position:static!important;right:auto!important;text-align:left!important;top:auto!important;vertical-align:baseline!important;width:auto!important;box-sizing:content-box!important;font-family:Consolas,"Bitstream Vera Sans Mono","Courier New",Courier,monospace!important;font-weight:400!important;font-style:normal!important;font-size:1em!important;min-height:inherit!important;min-height:auto!important}.syntaxhighlighter{width:100%!important;margin:0!important;position:relative!important;font-size:1em!important}.syntaxhighlighter .syntax-content{width:100%!important;position:relative!important;overflow:auto!important;font-size:1em!important}.syntaxhighlighter.source{overflow:hidden!important}.syntaxhighlighter .bold{font-weight:700!important}.syntaxhighlighter .italic{font-style:italic!important}.syntaxhighlighter .line{white-space:pre!important}.syntaxhighlighter table{width:100%!important}.syntaxhighlighter table caption{text-align:left!important;padding:.5em 0 .5em 1em!important}.syntaxhighlighter table td.code{width:100%!important}.syntaxhighlighter table td.code .container{position:relative!important}.syntaxhighlighter table td.code .container textarea{box-sizing:border-box!important;position:absolute!important;left:0!important;top:0!important;width:100%!important;height:100%!important;border:none!important;background:#fff!important;padding-left:1em!important;overflow:hidden!important;white-space:pre!important}.syntaxhighlighter table td.gutter .line{text-align:right!important;padding:0 .5em 0 1em!important}.syntaxhighlighter table td.code .line{padding:0 1em!important}.syntaxhighlighter.nogutter td.code .container textarea,.syntaxhighlighter.nogutter td.code .line{padding-left:0!important}.syntaxhighlighter.show{display:block!important}.syntaxhighlighter.collapsed table{display:none!important}.syntaxhighlighter.collapsed .toolbar{padding:.1em .8em 0 .8em!important;font-size:1em!important;position:static!important;width:auto!important;height:auto!important}.syntaxhighlighter.collapsed .toolbar span{display:inline!important;margin-right:1em!important}.syntaxhighlighter.collapsed .toolbar span a{padding:0!important;display:none!important}.syntaxhighlighter.collapsed .toolbar span a.expandSource{display:inline!important}.syntaxhighlighter .toolbar{position:absolute!important;padding: 4px 4px!important;right:16px!important;top:0px!important;font-size:10px!important;z-index:10!important}.syntaxhighlighter .toolbar span.title{display:inline!important}.syntaxhighlighter .toolbar a.toolbar_item, .syntaxhighlighter .toolbar .toolbar_item {display: block !important;float: left !important;margin: 0px !important;margin:0px 2px !important;background-repeat: no-repeat !important;overflow: hidden !important;text-indent: -5000px !important}.syntaxhighlighter .toolbar a{display:block!important;text-align:center!important;text-decoration:none!important;padding:0!important}.syntaxhighlighter .toolbar a.expandSource{display:none!important}.syntaxhighlighter.ie{font-size:.9em!important;padding:1px 0 1px 0!important}.syntaxhighlighter.ie .toolbar{line-height:8px!important}.syntaxhighlighter.ie .toolbar a{padding-top:0!important}.syntaxhighlighter.printing .line.alt1 .content,.syntaxhighlighter.printing .line.alt2 .content,.syntaxhighlighter.printing .line.highlighted .number,.syntaxhighlighter.printing .line.highlighted.alt1 .content,.syntaxhighlighter.printing .line.highlighted.alt2 .content{background:0 0!important}.syntaxhighlighter.printing .line .number{color:#bbb!important}.syntaxhighlighter.printing .line .content{color:#000!important}.syntaxhighlighter.printing .toolbar{display:none!important}.syntaxhighlighter.printing a{text-decoration:none!important}.syntaxhighlighter.printing .plain,.syntaxhighlighter.printing .plain a{color:#000!important}.syntaxhighlighter.printing .comments,.syntaxhighlighter.printing .comments a{color:#008200!important}.syntaxhighlighter.printing .string,.syntaxhighlighter.printing .string a{color:#00f!important}.syntaxhighlighter.printing .keyword{color:#069!important;font-weight:700!important}.syntaxhighlighter.printing .preprocessor{color:gray!important}.syntaxhighlighter.printing .variable{color:#a70!important}.syntaxhighlighter.printing .value{color:#090!important}.syntaxhighlighter.printing .functions{color:#ff1493!important}.syntaxhighlighter.printing .constants{color:#06c!important}.syntaxhighlighter.printing .script{font-weight:700!important}.syntaxhighlighter.printing .color1,.syntaxhighlighter.printing .color1 a{color:gray!important}.syntaxhighlighter.printing .color2,.syntaxhighlighter.printing .color2 a{color:#ff1493!important}.syntaxhighlighter.printing .color3,.syntaxhighlighter.printing .color3 a{color:red!important}.syntaxhighlighter.printing .break,.syntaxhighlighter.printing .break a{color:#000!important}.syntaxhighlighter a.toolbar_item{background-size: cover!important;background-repeat: no-repeat!important;}
+.syntaxhighlighter a.toolbar_item.expandGutter.opened{background-image: url("https://1.bp.blogspot.com/-2LUQ_cB3w1o/XrYeUtHzJtI/AAAAAAAAAi0/TBdh9LbpVLcZtdMHe1tjbzjhBrHosWr1wCLcBGAsYHQ/s1600/list-collapsed.png") !important;}
+.syntaxhighlighter a.toolbar_item.expandGutter.closed{background-image: url("https://1.bp.blogspot.com/-t-fneOe65_Y/XrYeVof2qbI/AAAAAAAAAjA/c-eWPIpmbfEhdlGW4WhhKWLDnpLXw77fACLcBGAsYHQ/s1600/list-expand.png") !important;}
+.syntaxhighlighter a.toolbar_item.viewSource{background-image: url("https://1.bp.blogspot.com/-TW_Z24Wehhc/XrYeWRiRvxI/AAAAAAAAAjE/51barfIk6cwCALqk8bT9QT3q5cESDty-ACLcBGAsYHQ/s1600/maximize.png") !important;}
+.syntaxhighlighter a.toolbar_item.copyToClipboard{background-image: url("https://1.bp.blogspot.com/-R_D_myft7TI/XrYeU2w2pEI/AAAAAAAAAi8/HL-TxQZlmAYuKasObdomG2MRIKzAkfKjwCLcBGAsYHQ/s1600/clipboard.png") !important;}
+.syntaxhighlighter a.toolbar_item.print{background-image: url("https://1.bp.blogspot.com/-XxYKUUVVxjA/XrYf0CJtU7I/AAAAAAAAAjc/gsg-_u2KX8o_CWzGFRxIRC33s427iruuwCLcBGAsYHQ/s1600/printer.png") !important;}
+.syntaxhighlighter a.toolbar_item.help{background-image: url("https://1.bp.blogspot.com/-c08F3DlSOuM/XrYeUuQQMSI/AAAAAAAAAi4/ZrOrIQwwIwI9vAF88u95uHCuUuwyoZYhwCLcBGAsYHQ/s1600/information.png") !important;}
 </style>
 <style>
-.syntaxhighlighter{background-color:white!important}.syntaxhighlighter .line.alt1{background-color:white!important}.syntaxhighlighter .line.alt2{background-color:white!important}.syntaxhighlighter .line.highlighted.alt1,.syntaxhighlighter .line.highlighted.alt2{background-color:#e0e0e0!important}.syntaxhighlighter .line.highlighted.number{color:black!important}.syntaxhighlighter table caption{color:black!important}.syntaxhighlighter .gutter{color:#afafaf!important}.syntaxhighlighter .gutter .line{border-right:3px solid #6ce26c!important}.syntaxhighlighter .gutter .line.highlighted{background-color:#6ce26c!important;color:white!important}.syntaxhighlighter.printing .line .content{border:none!important}.syntaxhighlighter.collapsed{overflow:visible!important}.syntaxhighlighter.collapsed .toolbar{color:blue!important;background:white!important;border:1px solid #6ce26c!important}.syntaxhighlighter.collapsed .toolbar a{color:blue!important}.syntaxhighlighter.collapsed .toolbar a:hover{color:red!important}.syntaxhighlighter .toolbar{color:white!important;background:#6ce26c!important;border:none!important}.syntaxhighlighter .toolbar a{color:white!important}.syntaxhighlighter .toolbar a:hover{color:black!important}.syntaxhighlighter .plain,.syntaxhighlighter .plain a{color:black!important}.syntaxhighlighter .comments,.syntaxhighlighter .comments a{color:#008200!important}.syntaxhighlighter .string,.syntaxhighlighter .string a{color:blue!important}.syntaxhighlighter .keyword{color:#006699!important}.syntaxhighlighter .preprocessor{color:gray!important}.syntaxhighlighter .variable{color:#aa7700!important}.syntaxhighlighter .value{color:#009900!important}.syntaxhighlighter .functions{color:#ff1493!important}.syntaxhighlighter .constants{color:#0066cc!important}.syntaxhighlighter .script{font-weight:bold!important;color:#006699!important;background-color:none!important}.syntaxhighlighter .color1,.syntaxhighlighter .color1 a{color:gray!important}.syntaxhighlighter .color2,.syntaxhighlighter .color2 a{color:#ff1493!important}.syntaxhighlighter .color3,.syntaxhighlighter .color3 a{color:red!important}.syntaxhighlighter .keyword{font-weight:bold!important}
+.syntaxhighlighter{background-color:white!important}.syntaxhighlighter .line.alt1{background-color:white!important}.syntaxhighlighter .line.alt2{background-color:white!important}.syntaxhighlighter .line.highlighted.alt1,.syntaxhighlighter .line.highlighted.alt2{background-color:#e0e0e0!important}.syntaxhighlighter .line.highlighted.number{color:black!important}.syntaxhighlighter table caption{color:black!important}.syntaxhighlighter.nogutter .gutter{display:none!important}.syntaxhighlighter.nogutter td.code{border-left: 3px solid #6ce26c!important;padding: 0 1em!important}.syntaxhighlighter .gutter{color:#afafaf!important}.syntaxhighlighter .gutter .line{border-right:3px solid #6ce26c!important}.syntaxhighlighter .gutter .line.highlighted{background-color:#6ce26c!important;color:white!important}.syntaxhighlighter.printing .line .content{border:none!important}.syntaxhighlighter.collapsed{overflow:visible!important}.syntaxhighlighter.collapsed .toolbar{color:blue!important;background:white!important;border:1px solid #6ce26c!important}.syntaxhighlighter.collapsed .toolbar a{color:blue!important}.syntaxhighlighter.collapsed .toolbar a:hover{color:red!important}.syntaxhighlighter .toolbar{color:white!important;background:#E7E5DC!important;border:none!important}.syntaxhighlighter .toolbar a{color:white!important}.syntaxhighlighter .toolbar a:hover{color:black!important}.syntaxhighlighter .plain,.syntaxhighlighter .plain a{color:black!important}.syntaxhighlighter .comments,.syntaxhighlighter .comments a{color:#008200!important}.syntaxhighlighter .string,.syntaxhighlighter .string a{color:blue!important}.syntaxhighlighter .keyword{color:#006699!important}.syntaxhighlighter .preprocessor{color:gray!important}.syntaxhighlighter .variable{color:#aa7700!important}.syntaxhighlighter .value{color:#009900!important}.syntaxhighlighter .functions{color:#ff1493!important}.syntaxhighlighter .constants{color:#0066cc!important}.syntaxhighlighter .script{font-weight:bold!important;color:#006699!important;background-color:none!important}.syntaxhighlighter .color1,.syntaxhighlighter .color1 a{color:gray!important}.syntaxhighlighter .color2,.syntaxhighlighter .color2 a{color:#ff1493!important}.syntaxhighlighter .color3,.syntaxhighlighter .color3 a{color:red!important}.syntaxhighlighter .keyword{font-weight:bold!important}
 </style>
 <!-- Finally, to actually run the highlighter, you need to include this JS on your page -->
 <script type='text/javascript'>
 //<![CDATA[
   SyntaxHighlighter.config.bloggerMode = true;
   SyntaxHighlighter.config.stripBrs = true;
+  SyntaxHighlighter.config.tagName = 'pre';
+  SyntaxHighlighter.config.strings.expandGutter = 'Expand Side';
+  SyntaxHighlighter.config.strings.copyToClipboard = 'Copy To Clipboard';
+  SyntaxHighlighter.config.strings.viewSource = 'View Source';
+  SyntaxHighlighter.config.strings.print = 'Print';
+  SyntaxHighlighter.config.strings.help = 'About SyntaxHighlighter';
+  SyntaxHighlighter.config.clipboardSwf = 'http://alexgorbatchev.com/pub/sh/2.1.382/scripts/clipboard.swf'; 
+  SyntaxHighlighter.defaults['gutter'] = true;
+  SyntaxHighlighter.defaults['smart-tabs'] = true;
+  SyntaxHighlighter.defaults['toolbar'] = true;
+  SyntaxHighlighter.defaults['highlight'] = null;
+  SyntaxHighlighter.defaults['auto-links'] = true;
+  SyntaxHighlighter.defaults['collapse'] = false;
+  SyntaxHighlighter.defaults['tab-size'] = 4;
+  SyntaxHighlighter.defaults['first-line'] = 1;
+  SyntaxHighlighter.defaults['html-script'] = false;
+  SyntaxHighlighter.defaults['class-name'] = '';
   SyntaxHighlighter.all();
 //]]>
 </script> 
