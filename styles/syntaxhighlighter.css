@@ -1,0 +1,231 @@
+.syntaxhighlighter a,.syntaxhighlighter code,.syntaxhighlighter div,.syntaxhighlighter table,.syntaxhighlighter table caption,.syntaxhighlighter table tbody,.syntaxhighlighter table td,.syntaxhighlighter table thead,.syntaxhighlighter table tr,.syntaxhighlighter textarea{
+    -moz-border-radius:0!important;
+    -webkit-border-radius:0!important;
+    background:0 0!important;
+    border:0!important;
+    bottom:auto!important;
+    float:none!important;
+    height:auto!important;
+    left:auto!important;
+    line-height:1.2em!important;
+    margin:0!important;
+    outline:0!important;
+    overflow:visible!important;
+    padding:0!important;
+    position:static!important;
+    right:auto!important;
+    text-align:left!important;
+    top:auto!important;
+    vertical-align:baseline!important;
+    width:auto!important;
+    box-sizing:content-box!important;
+    font-family:Consolas,"Bitstream Vera Sans Mono","Courier New",Courier,monospace!important;
+    font-weight:400!important;
+    font-style:normal!important;
+    font-size:1em!important;
+    min-height:inherit!important;
+    min-height:auto!important
+}
+.syntaxhighlighter{
+    width:100%!important;
+    margin:0!important;
+    position:relative!important;
+    font-size:1em!important
+}
+.syntaxhighlighter .syntax-content{
+    width:100%!important;
+    position:relative!important;
+    overflow:auto!important;
+    font-size:1em!important
+}
+.syntaxhighlighter.source{
+    overflow:hidden!important
+}
+.syntaxhighlighter .bold{
+    font-weight:700!important
+}
+.syntaxhighlighter .italic{
+    font-style:italic!important
+}
+.syntaxhighlighter .line{
+    white-space:pre!important
+}
+.syntaxhighlighter table{
+    width:100%!important
+}
+.syntaxhighlighter table caption{
+    text-align:left!important;
+    padding:.5em 0 .5em 1em!important
+}
+.syntaxhighlighter table td.code{
+    width:100%!important
+}
+.syntaxhighlighter table td.code .container{
+    position:relative!important
+}
+.syntaxhighlighter table td.code .container textarea{
+    box-sizing:border-box!important;
+    position:absolute!important;
+    left:0!important;
+    top:0!important;
+    width:100%!important;
+    height:100%!important;
+    border:none!important;
+    background:#fff!important;
+    padding-left:1em!important;
+    overflow:hidden!important;
+    white-space:pre!important
+}
+.syntaxhighlighter table td.gutter .line{
+    text-align:right!important;
+    padding:0 .5em 0 1em!important
+}
+.syntaxhighlighter table td.code .line{
+    padding:0 1em!important
+}
+.syntaxhighlighter.nogutter td.code .container textarea,.syntaxhighlighter.nogutter td.code .line{
+    padding-left:0!important
+}
+.syntaxhighlighter.show{
+    display:block!important
+}
+.syntaxhighlighter.collapsed table{
+    display:none!important
+}
+.syntaxhighlighter.collapsed .toolbar{
+    padding:.1em .8em 0 .8em!important;
+    font-size:1em!important;
+    position:static!important;
+    width:auto!important;
+    height:auto!important
+}
+.syntaxhighlighter.collapsed .toolbar span{
+    display:inline!important;
+    margin-right:1em!important
+}
+.syntaxhighlighter.collapsed .toolbar span a{
+    padding:0!important;
+    display:none!important
+}
+.syntaxhighlighter.collapsed .toolbar span a.expandSource{
+    display:inline!important
+}
+.syntaxhighlighter .toolbar{
+    position:absolute!important;
+    padding: 4px 4px!important;
+    right:16px!important;
+    top:0px!important;
+    font-size:10px!important;
+    z-index:10!important
+}
+.syntaxhighlighter .toolbar span.title{
+    display:inline!important
+}
+.syntaxhighlighter .toolbar a.toolbar_item, .syntaxhighlighter .toolbar .toolbar_item {
+    display: block !important;
+    float: left !important;
+    margin: 0px !important;
+    margin:0px 2px !important;
+    background-repeat: no-repeat !important;
+    overflow: hidden !important;
+    text-indent: -5000px !important
+}
+.syntaxhighlighter .toolbar a{
+    display:block!important;
+    text-align:center!important;
+    text-decoration:none!important;
+    padding:0!important
+}
+.syntaxhighlighter .toolbar a.expandSource{
+    display:none!important
+}
+.syntaxhighlighter.ie{
+    font-size:.9em!important;
+    padding:1px 0 1px 0!important
+}
+.syntaxhighlighter.ie .toolbar{
+    line-height:8px!important
+}
+.syntaxhighlighter.ie .toolbar a{
+    padding-top:0!important
+}
+.syntaxhighlighter.printing .line.alt1 .content,.syntaxhighlighter.printing .line.alt2 .content,.syntaxhighlighter.printing .line.highlighted .number,.syntaxhighlighter.printing .line.highlighted.alt1 .content,.syntaxhighlighter.printing .line.highlighted.alt2 .content{
+    background:0 0!important
+}
+.syntaxhighlighter.printing .line .number{
+    color:#bbb!important
+}
+.syntaxhighlighter.printing .line .content{
+    color:#000!important
+}
+.syntaxhighlighter.printing .toolbar{
+    display:none!important
+}
+.syntaxhighlighter.printing a{
+    text-decoration:none!important
+}
+.syntaxhighlighter.printing .plain,.syntaxhighlighter.printing .plain a{
+    color:#000!important
+}
+.syntaxhighlighter.printing .comments,.syntaxhighlighter.printing .comments a{
+    color:#008200!important
+}
+.syntaxhighlighter.printing .string,.syntaxhighlighter.printing .string a{
+    color:#00f!important
+}
+.syntaxhighlighter.printing .keyword{
+    color:#069!important;
+    font-weight:700!important
+}
+.syntaxhighlighter.printing .preprocessor{
+    color:gray!important
+}
+.syntaxhighlighter.printing .variable{
+    color:#a70!important
+}
+.syntaxhighlighter.printing .value{
+    color:#090!important
+}
+.syntaxhighlighter.printing .functions{
+    color:#ff1493!important
+}
+.syntaxhighlighter.printing .constants{
+    color:#06c!important
+}
+.syntaxhighlighter.printing .script{
+    font-weight:700!important
+}
+.syntaxhighlighter.printing .color1,.syntaxhighlighter.printing .color1 a{
+    color:gray!important
+}
+.syntaxhighlighter.printing .color2,.syntaxhighlighter.printing .color2 a{
+    color:#ff1493!important
+}
+.syntaxhighlighter.printing .color3,.syntaxhighlighter.printing .color3 a{
+    color:red!important
+}
+.syntaxhighlighter.printing .break,.syntaxhighlighter.printing .break a{
+    color:#000!important
+}
+.syntaxhighlighter a.toolbar_item{
+    background-size: cover!important;
+    background-repeat: no-repeat!important;
+}
+ .syntaxhighlighter a.toolbar_item.expandGutter.opened{
+    background-image: url("https://1.bp.blogspot.com/-2LUQ_cB3w1o/XrYeUtHzJtI/AAAAAAAAAi0/TBdh9LbpVLcZtdMHe1tjbzjhBrHosWr1wCLcBGAsYHQ/s1600/list-collapsed.png") !important;
+}
+ .syntaxhighlighter a.toolbar_item.expandGutter.closed{
+    background-image: url("https://1.bp.blogspot.com/-t-fneOe65_Y/XrYeVof2qbI/AAAAAAAAAjA/c-eWPIpmbfEhdlGW4WhhKWLDnpLXw77fACLcBGAsYHQ/s1600/list-expand.png") !important;
+}
+ .syntaxhighlighter a.toolbar_item.viewSource{
+    background-image: url("https://1.bp.blogspot.com/-TW_Z24Wehhc/XrYeWRiRvxI/AAAAAAAAAjE/51barfIk6cwCALqk8bT9QT3q5cESDty-ACLcBGAsYHQ/s1600/maximize.png") !important;
+}
+ .syntaxhighlighter a.toolbar_item.copyToClipboard{
+    background-image: url("https://1.bp.blogspot.com/-R_D_myft7TI/XrYeU2w2pEI/AAAAAAAAAi8/HL-TxQZlmAYuKasObdomG2MRIKzAkfKjwCLcBGAsYHQ/s1600/clipboard.png") !important;
+}
+ .syntaxhighlighter a.toolbar_item.print{
+    background-image: url("https://1.bp.blogspot.com/-XxYKUUVVxjA/XrYf0CJtU7I/AAAAAAAAAjc/gsg-_u2KX8o_CWzGFRxIRC33s427iruuwCLcBGAsYHQ/s1600/printer.png") !important;
+}
+ .syntaxhighlighter a.toolbar_item.help{
+    background-image: url("https://1.bp.blogspot.com/-c08F3DlSOuM/XrYeUuQQMSI/AAAAAAAAAi4/ZrOrIQwwIwI9vAF88u95uHCuUuwyoZYhwCLcBGAsYHQ/s1600/information.png") !important;
+}
